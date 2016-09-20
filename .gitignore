@@ -1,3 +1,5 @@
-#RRD files
+#RRD files and rendered graphs
 *.rrd
+*.png
+*.svg
 
