@@ -2,10 +2,13 @@
 
 #creates the rrd if it does not already exist
 
-RRDFILE_PATH='./squeue_job_status.rrd'                                #path to the rrd file
-if [ ! -f $RRDFILE_PATH ] ; then                                      #No clobbering, -O was not registering so back to if
-    rrdtool create $RRDFILE_PATH --start N-93D --step 30 DS:Running:GAUGE:600:0:U DS:Pending:GAUGE:600:0:U RRA:AVERAGE:0.5:10:1440 RRA:AVERAGE:0.5:1:2880 RRA:AVERAGE:0.5:2880:93 RRA:MAX:0.5:2880:93
-fi
+RRDFILENAME_TEMPLATE="squeue_job_status_"
+
+for PARTITION in `sinfo -h -o "%R"`; do
+    if [ ! -f $RRDFILENAME_TEMPLATE$PARTITION".rrd" ] ; then              #No clobbering
+        rrdtool create $RRDFILENAME_TEMPLATE$PARTITION".rrd" --start N-93D --step 30 DS:Running:GAUGE:600:0:U DS:Pending:GAUGE:600:0:U RRA:AVERAGE:0.5:10:1440 RRA:AVERAGE:0.5:1:2880 RRA:AVERAGE:0.5:2880:93 RRA:MAX:0.5:2880:93
+    fi
+done
 
 #rrdtool create ./squeue_job_status.rrd -O --start N-93D --step 30    #No owrite, 30 second steps, should be <= update frequency
 #DS:Running:GAUGE:600:0:U DS:Pending:GAUGE:600:0:U                    #Creates the guages for running and pending programs
@@ -17,7 +20,9 @@ fi
 
 #Updates the rrd, should be run with t <= highest frequency stored.
 
-running=$(squeue | awk '$5~/R/ {print $5}' | wc | awk '{print $1}')   ##processes running
-pending=$(squeue | awk '$5~/Pd?/ {print $5}' | wc | awk '{print $1}') ##processes pending
-
-rrdtool update $RRDFILE_PATH "N:$running:$pending"
+for PARTITION in `sinfo -h -o "%R"`; do
+    running=$(squeue -h -o "%.18i %.9P %.8T" | awk '$3 == "RUNNING" && $2 == "${PARTITION}" {print $1}' | wc | awk '{print $1}')   ##processes running
+    pending=$(squeue -h -o "%.18i %.9P %.8T" | awk '$3 == "PENDING" && $2 == "${PARTITION}" {print $1}' | wc | awk '{print $1}')   ##processes pending
+    
+    rrdtool update $RRDFILENAME_TEMPLATE$PARTITION".rrd"  "N:$running:$pending"
+done
