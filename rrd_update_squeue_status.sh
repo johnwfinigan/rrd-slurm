@@ -22,8 +22,8 @@ done
 
 
 for PARTITION in `sinfo -h -o "%R"`; do
-    running=$(squeue -h -o "%.18i %.9P %.8T" | awk '$3 == "RUNNING" && $2 == "${PARTITION}" {print $1}' | wc | awk '{print $1}')   ##processes running
-    pending=$(squeue -h -o "%.18i %.9P %.8T" | awk '$3 == "PENDING" && $2 == "${PARTITION}" {print $1}' | wc | awk '{print $1}')   ##processes pending
+    running=$(squeue -h -o "%.18i %.9P %.8T" | awk -v P=$PARTITION '$3 == "RUNNING" && $2 == P {print $1}' | wc | awk '{print $1}')   ##processes running
+    pending=$(squeue -h -o "%.18i %.9P %.8T" | awk -v P=$PARTITION '$3 == "PENDING" && $2 == P {print $1}' | wc | awk '{print $1}')   ##processes pending
     
     rrdtool update $RRDFILENAME_TEMPLATE$PARTITION".rrd"  "N:$running:$pending"
 done
