@@ -22,7 +22,7 @@ for PARTITION in `sinfo -h -o "%R"`; do
     "DEF:probe2=$OUTFILE.rrd:Pending:AVERAGE" "LINE1:probe1#00ff00:Running" "LINE2:probe2#0400ff:Pending"
 
 #2 Years
-    rrdtool graph $OUTFILE"_3months."$IMGTYPE -a $IMGTYPE --start N-2Y --end N --title="$PARTITION 2 Year Queue Depth" \
+    rrdtool graph $OUTFILE"_2years."$IMGTYPE -a $IMGTYPE --start N-2Y --end N --title="$PARTITION 2 Year Queue Depth" \
     --vertical-label "Jobs" "DEF:probe1=$OUTFILE.rrd:Running:AVERAGE" \
     "DEF:probe2=$OUTFILE.rrd:Pending:AVERAGE" "LINE1:probe1#00ff00:Running" "LINE2:probe2#0400ff:Pending"
 done
